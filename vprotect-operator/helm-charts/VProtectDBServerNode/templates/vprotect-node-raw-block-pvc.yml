@@ -1,0 +1,26 @@
+{{- if .Values.node.provisionNode -}}
+{{- if not .Values.node.onlyStagingSpace.enable }}
+{{- if or .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vprotect-node-raw-block-pvc
+  labels:
+    app: vprotect-node
+spec:
+  volumeMode: Block
+  accessModes: 
+  - ReadWriteOnce
+  resources:
+    requests:
+      {{- if .Values.node.singleDeduplicatedSpace.enable }}
+      storage: {{ .Values.node.singleDeduplicatedSpace.capacity }}
+      {{- end }}
+      {{- if not .Values.node.singleDeduplicatedSpace.enable }}
+      {{- if .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable }}
+      storage: {{ .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.backupCapacity }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

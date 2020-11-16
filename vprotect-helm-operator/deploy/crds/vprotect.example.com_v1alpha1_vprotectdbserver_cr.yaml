@@ -1,0 +1,70 @@
+apiVersion: vprotect.example.com/v1alpha1
+kind: VprotectDBServer
+metadata:
+  name: example-vprotect
+spec:
+  # Default values copied from <project_dir>/helm-charts/server-chart/values.yaml
+
+  #General Specs
+  namespace: demo-rhel
+  serviceAccountName: vprotect-helm-operator
+  
+  #Server Specs
+  server:
+    initcontainerimage: quay.io/opentestlabs/initimage-ubi8
+    configmapName: vprotect-config
+    containerPort: 8080
+    image: image-registry.openshift-image-registry.svc:5000/demo-rhel/vprotect-node-server:0.1
+    useImagePullSecret: false
+    imagePullSecretsName: server-quay
+    configmapDataKeyName: payara.properties
+    mountPath: /opt/vprotect/payara.properties
+    subPath: payara.properties
+    replicaCount: 1
+    service:
+      type: #NodePort
+      svcName: vprotect-server
+      insecurePort:
+        name: vprotect-server-http
+        port: 8080
+      securePort:
+        name: vprotect-server-https
+        port: 8181
+    routes:
+      insecureRoute:
+        enabled: true
+        name: vprotect-server-http-route
+      secureRoute:
+        enabled: true
+        name: vprotect-server-https-route
+    ingress:
+      enabled: true
+      host: vprotect-server.demo-rhel.kubacki-cluster-915b3b336cabec458a7c7ec2aa7c625f-0000.us-south.containers.appdomain.cloud
+    
+    
+  #Override Dependent Chart (MariaDB) values
+  mariadbstoreware:
+    namespace: demo-rhel
+    serviceAccountName: vprotect-helm-operator
+    replicaCount: 1
+    provisionMariaDB: true
+    DBImage: registry.redhat.io/rhel8/mariadb-103
+    MYSQL_PASSWORD: vprotect
+    MYSQL_USER: vprotect
+    MYSQL_DATABASE: vprotect
+    MYSQL_DEFAULTS_FILE: /var/lib/mysql/data/conf/my_custom.cnf
+    
+    port: 3306
+    portName: mysql
+    cpu: 300m
+    memory: 512Mi
+    
+    serviceName: mariadb
+    
+    pvcName: mariadb-pv-claim
+    pvcAccessModes: ReadWriteOnce
+    pvcStorageCapacity: 1Gi
+     
+    configmapName: mariadb-config 
+    dataMountPath: /var/lib/mysql/data
+    configmapMountPath: /var/lib/mysql/data/conf

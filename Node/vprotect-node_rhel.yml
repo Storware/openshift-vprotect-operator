@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-node
+  labels:
+    app: vprotect-node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vprotect-node
+  template:
+    metadata:
+      labels:
+        app: vprotect-node
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: myserviceaccount
+      initContainers:
+      - name: init-vprotectserver
+        image: busybox
+        command: ['sh', '-c', 'until nc -z -v -w30 vprotect-server 8181; do echo "Waiting for vProtect Server..."; sleep 5; done;']
+      containers:
+      - name: vprotect-node
+        image: image-registry.openshift-image-registry.svc:5000/storware-rhel/vprotect-node-rhel:0.1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        ports:
+        - containerPort: 15700
+        env:
+        - name: VPROTECT_NODE_NAME
+          value: vProtectNode
+        - name: VPROTECT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: username
+        - name: VPROTECT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: password
+        - name: VPROTECT_SERVER_SERVICE
+          value: vprotect-server
+        command: ["sh", "-c", "/opt/vprotect/register-node.sh"]
+        args:
+          - VPROTECT_NODE_NAME
+          - VPROTECT_USERNAME
+          - VPROTECT_PASSWORD
+        volumeMounts:
+        - name: vprotect-data
+          mountPath: /vprotect_data
+        imagePullPolicy: Always
+      volumes:
+      - name: vprotect-data
+        persistentVolumeClaim:
+          claimName: vprotect-pv-claim
+---

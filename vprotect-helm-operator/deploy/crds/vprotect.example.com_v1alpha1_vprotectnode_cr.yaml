@@ -1,0 +1,25 @@
+apiVersion: vprotect.example.com/v1alpha1
+kind: VprotectNode
+metadata:
+  name: example-vprotectnode
+spec:
+  # Default values copied from <project_dir>/helm-charts/node-chart/values.yaml
+  
+  #General Specs
+  namespace: demo-rhel
+  serviceAccountName: vprotect-helm-operator
+  
+  #Node Specs
+  node:
+    initcontainerimage: quay.io/opentestlabs/initimage-ubi8
+    containerPort: 15700
+    image: image-registry.openshift-image-registry.svc:5000/demo-rhel/vprotect-node-uid:0.0.1
+    useImagePullSecret: false
+    imagePullSecretsName: node-quay
+    provisionNode: true
+    pvcAccessModes: ReadWriteOnce
+    pvcName: vprotect-pv-claim
+    pvcStorageCapacity: 10Gi
+    storageClassName: ibmc-block-bronze
+    replicaCount: 1
+    svcName: vprotect-node

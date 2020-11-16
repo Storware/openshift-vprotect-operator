@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.server.service.svcName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vprotect-server
+spec:
+  ports:
+  # Secure HTTP Route
+  - name: {{ .Values.server.service.securePort.name }}
+    port: {{ .Values.server.service.securePort.port }}
+  # Insecure HTTP Route
+  - name: {{ .Values.server.service.insecurePort.name }}
+    port: {{ .Values.server.service.insecurePort.port }}  
+  selector:
+    app: vprotect-server
+  type: {{ .Values.server.service.type }}
+---

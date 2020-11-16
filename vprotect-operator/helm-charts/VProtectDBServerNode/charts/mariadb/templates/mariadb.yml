@@ -1,0 +1,75 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-mariadb
+  labels:
+    app: vprotect-mariadb
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-mariadb
+  template:
+    metadata:
+      labels:
+        app: vprotect-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: "{{ .Values.DBImage }}"
+        imagePullPolicy: Always
+        env:
+        - name: MYSQL_PASSWORD
+          value: {{ .Values.MYSQL_PASSWORD }}
+        - name: MYSQL_USER
+          value: {{ .Values.MYSQL_USER }}
+        - name: MYSQL_DATABASE
+          value: vprotect
+        - name: MYSQL_DEFAULTS_FILE
+          value: /var/lib/mysql/data/conf/my_custom.cnf
+        resources:
+          requests:
+            cpu: {{ .Values.cpu }}
+            memory: {{ .Values.memory }}
+        ports:
+        - containerPort: {{ .Values.port }}
+          name: mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: "/var/lib/mysql/data"
+        - name: mariadb-config
+          mountPath: "/var/lib/mysql/data/conf"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - "-c"
+            - exec mysqladmin status -uroot
+          initialDelaySeconds: 120
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - "-c"
+            - exec mysqladmin status -uroot
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mariadb-pv-claim
+      - name: mariadb-config
+        configMap:
+          name: mariadb-config
+          items:
+          - key: my.cnf
+            path: my_custom.cnf
+---

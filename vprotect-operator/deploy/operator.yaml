@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: vprotect-operator
+  template:
+    metadata:
+      labels:
+        name: vprotect-operator
+    spec:
+      serviceAccountName: vprotect-operator
+      containers:
+        - name: vprotect-operator
+          # Replace this with the built image name
+          image: quay.io/opentestlabs/vprotect-operator-image:v0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "vprotect-operator"
+            - name: RELATED_IMAGE_DB
+              value: registry.redhat.io/rhel8/mariadb-103 
+            - name: RELATED_IMAGE_INITCONTAINER
+              value: quay.io/opentestlabs/initimage-ubi8
+            - name: RELATED_IMAGE_SERVER
+              value: quay.io/opentestlabs/vprotect-server:v0.0.1
+            - name: RELATED_IMAGE_NODE
+              value: quay.io/opentestlabs2/vprotect-node:v0.0.1
+

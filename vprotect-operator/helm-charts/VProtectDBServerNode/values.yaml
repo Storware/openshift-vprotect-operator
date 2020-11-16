@@ -1,0 +1,64 @@
+useImagePullSecret: true
+imagePullSecretsName: server-quay
+initcontainerimage: quay.io/opentestlabs/initimage-ubi8
+mariadb:
+  DBImage: registry.redhat.io/rhel8/mariadb-103
+  MYSQL_PASSWORD: vprotect
+  MYSQL_USER: vprotect
+  cpu: 300m
+  memory: 512Mi 
+  port: 3306
+  pvcStorageCapacity: 20Gi
+  replicaCount: 1
+  serviceName: mariadb
+  storageClassName: ibmc-block-gold
+node:
+  containerPort: 15700
+  cpu: 500m
+  image: image-registry.openshift-image-registry.svc:5000/demo-rhel/vprotect-node-uid:0.0.1
+  memory: 1Gi
+  provisionNode: true
+  pvNameFileStorage: 
+  replicaCount: 1
+  serviceName: vprotect-node
+  
+  onlyStagingSpace:
+    enable: true
+    stagingCapacity: 20Gi
+    storageClass: ibmc-file-retain-bronze
+  singleDeduplicatedSpace:
+    enable: false
+    capacity: 20Gi
+  separateStagingAndBackupSpace:
+    stagingCapacity: 20Gi
+    stagingStorageClass: ibmc-file-retain-bronze
+    backupTo:
+      rawBlock:
+        enable: false
+        backupCapacity: 20Gi
+      file:
+        enable: false
+        backupCapacity: 20Gi
+        storageClass: ibmc-file-retain-bronze
+        backupMountPath: null
+      initializedBlock:
+        enable: false
+        backupCapacity: 20Gi
+        storageClass: ibmc-block-retain-bronze
+        backupMountPath: null
+  
+server:
+  image: image-registry.openshift-image-registry.svc:5000/demo-rhel/vprotect-node-server:0.1
+  ingress:
+    enabled: true
+    subDomain: kubacki-cluster-915b3b336cabec458a7c7ec2aa7c625f-0000.us-south.containers.appdomain.cloud
+  replicaCount: 1
+  routes:
+    insecureRoute:
+      enabled: true
+      name: vprotect-server-http-route
+    secureRoute:
+      enabled: true
+      name: vprotect-server-https-route
+  serviceName: vprotect-server
+  serviceType: null

@@ -1,0 +1,6 @@
+# vProtect Enterprise backup solution for virtual environments repository
+# http://www.vprotect.io/
+[vprotect]
+name = vProtect
+baseurl = http://repo.storware.eu/vprotect/3.9.2/el8/
+gpgcheck=0

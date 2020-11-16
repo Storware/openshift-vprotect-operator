@@ -1,0 +1,101 @@
+apiVersion: vprotect.storware.com/v1alpha1
+kind: VProtectDBServerNode
+metadata:
+  name: example-vprotectdbservernode
+spec:
+  # General Spec
+  # If you want to use image from private repo, then set useImagePullSecret to true and give imagePullSecretName
+  useImagePullSecret: true   
+  imagePullSecretsName: my-quay-sec-opentestlabs
+  
+  # InitContainer Image URL Path
+  initcontainerimage: quay.io/opentestlabs/initimage-ubi8
+  
+  #Dependent Chart Specs
+  mariadb:
+    
+    # Database Image URL
+    DBImage: registry.redhat.io/rhel8/mariadb-103
+    
+    replicaCount: 1
+    # Container specifications
+    cpu: 300m
+    memory: 512Mi
+    port: 3306
+    
+    # Service Name
+    serviceName: mariadb
+    
+    # Persistent Volume Details
+    pvcStorageCapacity: 20Gi
+    storageClassName: ibmc-block-gold
+    
+    # Environment Variables
+    MYSQL_PASSWORD: vprotect
+    MYSQL_USER: vprotect
+
+  # Server Resources Specs
+  server:
+    replicaCount: 1
+    
+    image: quay.io/opentestlabs/vprotect-node-server:0.1
+
+    # Service Specifications    
+    serviceName: vprotect-server
+    serviceType: null
+    
+    # Routes Specifications
+    routes:
+      insecureRoute:
+        enabled: true
+        name: vprotect-server-http-route
+      secureRoute:
+        enabled: true
+        name: vprotect-server-https-route
+    
+    # Use Ingress Specifications for deployment on multiple kubernetes distribution
+    ingress:
+      enabled: true
+      subDomain: kubacki-cluster-915b3b336cabec458a7c7ec2aa7c625f-0000.us-south.containers.appdomain.cloud
+
+  # Node Resources Specs
+  node:
+    provisionNode: true
+    replicaCount: 1
+
+    image: quay.io/opentestlabs2/vprotect-node-uid:0.0.1
+    
+    # Container Specs
+    cpu: 500m
+    memory: 1Gi
+    containerPort: 15700
+    
+    # Service Name
+    serviceName: vprotect-node
+    
+    # vProtect Node Staging Space and Backup option
+    
+    onlyStagingSpace:
+      enable: false
+      stagingCapacity: 20Gi
+      storageClass: ibmc-file-retain-bronze
+    singleDeduplicatedSpace:
+      enable: false
+      capacity: 20Gi
+    separateStagingAndBackupSpace:
+      stagingCapacity: 20Gi
+      stagingStorageClass: ibmc-file-retain-bronze
+      backupTo:
+        rawBlock:
+          enable: false
+          backupCapacity: 20Gi
+        file:
+          enable: false
+          backupCapacity: 20Gi
+          storageClass: ibmc-file-retain-bronze
+          backupMountPath: null
+        initializedBlock:
+          enable: false
+          backupCapacity: 20Gi
+          storageClass: ibmc-block-retain-bronze
+          backupMountPath: null

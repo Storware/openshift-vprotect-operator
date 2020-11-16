@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorSource
+metadata:
+  name: vprotect-helm-operator
+spec:
+  endpoint: https://quay.io/cnr
+  publisher: storware
+  registryNamespace:  opentestlabs
+  type: appregistry
+  displayName: vProtect Operator

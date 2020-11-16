@@ -1,0 +1,14 @@
+{{- if .Values.node.provisionNode -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.node.serviceName }}
+  labels:
+    app: vprotect-node
+spec:
+  ports:
+  - name: {{ .Values.node.serviceName }}
+    port: {{ .Values.node.containerPort }}
+  selector:
+    app: vprotect-node
+{{- end }}

@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vprotect-server
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-server
+  template:
+    metadata:
+      labels:
+        app: vprotect-server
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{ if .Values.server.useImagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.server.imagePullSecretsName }}
+      {{ end }}
+      initContainers:
+      - name: init-mariadb
+        image: {{ .Values.server.initcontainerimage }}
+        command: ['sh', '-c', 'until nc -z -v -w30 mariadb 3306; do echo "Waiting for database connection..."; sleep 5; done;']
+      containers:
+      - name: vprotect-server
+        image: {{ .Values.server.image }}
+        ports:
+        - containerPort: {{ .Values.server.containerPort }}
+        volumeMounts:
+        - name: {{ .Values.server.configmapName }}
+          mountPath: {{ .Values.server.mountPath }}
+          subPath: {{ .Values.server.subPath }}
+        imagePullPolicy: Always
+        livenessProbe:
+              httpGet:
+                path: /
+                port: {{ .Values.server.containerPort }}
+              initialDelaySeconds: 180
+              periodSeconds: 30
+        readinessProbe:
+              httpGet:
+                path: /
+                port: {{ .Values.server.containerPort }}
+              initialDelaySeconds: 80
+              periodSeconds: 30
+              failureThreshold: 5
+      volumes:
+      - name: {{ .Values.server.configmapName }}
+        configMap:
+          name: {{ .Values.server.configmapName }}
+          items:
+          - key: {{ .Values.server.configmapDataKeyName }}
+            path: {{ .Values.server.subPath }}
+---

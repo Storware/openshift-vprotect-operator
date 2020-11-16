@@ -1,0 +1,18 @@
+#General Specs
+namespace: demo-rhel
+serviceAccountName: vprotect
+
+#Node Specs
+node:
+  initcontainerimage: busybox
+  containerPort: 15700
+  image: image-registry.openshift-image-registry.svc:5000/demo-rhel/vprotect-node-uid:0.0.1
+  useImagePullSecret: false
+  imagePullSecretsName: node-quay
+  provisionNode: true
+  pvcAccessModes: ReadWriteOnce
+  pvcName: vprotect-pv-claim
+  pvcStorageCapacity: 10Gi
+  storageClassName: ibmc-block-bronze
+  replicaCount: 1
+  svcName: vprotect-node

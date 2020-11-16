@@ -1,0 +1,18 @@
+{{- if .Values.server.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-vprotect
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vprotect-server
+spec:
+  rules:
+    - host: {{ .Values.server.ingress.host }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ .Values.server.service.insecurePort.name }}
+              servicePort: {{ .Values.server.service.insecurePort.port }}
+{{- end }}

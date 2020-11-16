@@ -1,0 +1,10 @@
+DBImage: registry.redhat.io/rhel8/mariadb-103
+MYSQL_PASSWORD: vprotect
+MYSQL_USER: vprotect
+cpu: 300m
+memory: 512Mi
+port: 33
+pvcName: mariadb-pv-claim
+pvcStorageCapacity: 20Gi
+serviceName: mariadb
+storageClassName: ibmc-block-gold

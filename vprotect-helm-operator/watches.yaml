@@ -1,0 +1,17 @@
+---
+- version: v1alpha1
+  group: vprotect.example.com
+  kind: VprotectDBServer
+  chart: helm-charts/server-chart 
+  overrideValues:
+    server.initcontainerimage: $RELATED_IMAGE_INITCONTAINER
+    server.image: $RELATED_IMAGE_SERVER
+    mariadbstoreware.DBImage: $RELATED_IMAGE_DB    
+- version: v1alpha1
+  group: vprotect.example.com
+  kind: VprotectNode
+  chart: helm-charts/node-chart
+  overrideValues:
+    node.initcontainerimage: $RELATED_IMAGE_INITCONTAINER
+    node.image: $RELATED_IMAGE_NODE
+  

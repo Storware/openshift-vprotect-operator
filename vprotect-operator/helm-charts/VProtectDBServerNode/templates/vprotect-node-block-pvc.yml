@@ -1,0 +1,19 @@
+{{- if .Values.node.provisionNode -}}
+{{- if not (or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable) -}}
+{{- if .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vprotect-node-initialized-block-pvc
+  labels:
+    app: vprotect-node
+spec:
+  storageClassName: "{{ .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.storageClass }}"
+  accessModes: 
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.backupCapacity }}
+{{- end }}
+{{- end }}
+{{- end }}

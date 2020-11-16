@@ -1,0 +1,27 @@
+# Default values for mariadbstoreware.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+provisionMariaDB: true
+DBImage: registry.redhat.io/rhel8/mariadb-103
+ 
+ 
+# Environment Variables
+MYSQL_PASSWORD: vprotect
+MYSQL_USER: vprotect
+MYSQL_DATABASE: vprotect
+MYSQL_DEFAULTS_FILE: /var/lib/mysql/data/conf/my_custom.cnf
+ 
+port: 3306
+portName: mysql
+cpu: 300m
+memory: 512Mi
+ 
+serviceName: mariadb
+ 
+pvcName: mariadb-pv-claim
+pvcAccessModes: ReadWriteOnce
+pvcStorageCapacity: 1Gi
+ 
+configmapName: mariadb-config 
+dataMountPath: /var/lib/mysql/data
+configmapMountPath: /var/lib/mysql/data/conf 

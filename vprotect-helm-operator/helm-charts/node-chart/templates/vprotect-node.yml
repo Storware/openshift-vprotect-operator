@@ -1,0 +1,68 @@
+---
+{{- if .Values.node.provisionNode -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-node-{{ meta.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vprotect-node
+spec:
+  replicas: {{ .Values.node.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-node
+  template:
+    metadata:
+      labels:
+        app: vprotect-node
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{ if .Values.node.useImagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.node.imagePullSecretsName }}
+      {{ end }}
+      initContainers:
+      - name: init-vprotectserver
+        image: {{ .Values.node.initcontainerimage }}
+        command: ['sh', '-c', 'until nc -z -v -w30 vprotect-server 8181; do echo "Waiting for vProtect Server..."; sleep 5; done;']
+      containers:
+      - name: vprotect-node
+        image: {{ .Values.node.image }}
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        ports:
+        - containerPort: {{ .Values.node.containerPort }}
+        env:
+        - name: VPROTECT_NODE_NAME
+          value: vProtectNode
+        - name: VPROTECT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: username
+        - name: VPROTECT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: password
+        - name: VPROTECT_SERVER_SERVICE
+          value: vprotect-server
+        command: ["sh", "-c", "/opt/vprotect/register-node.sh"]
+        args:
+          - VPROTECT_NODE_NAME
+          - VPROTECT_USERNAME
+          - VPROTECT_PASSWORD
+        volumeMounts:
+        - name: vprotect-data
+          mountPath: /vprotect_data
+        imagePullPolicy: Always
+      volumes:
+      - name: vprotect-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.node.pvcName }}
+{{- end }}
+---

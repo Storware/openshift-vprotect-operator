@@ -1,0 +1,10 @@
+---
+- version: v1alpha1
+  group: vprotect.storware.com
+  kind: VProtectDBServerNode
+  chart: helm-charts/VProtectDBServerNode
+  overrideValues:
+    initcontainerimage: $RELATED_IMAGE_INITCONTAINER
+    server.image: $RELATED_IMAGE_SERVER
+    mariadb.DBImage: $RELATED_IMAGE_DB
+    node.image: $RELATED_IMAGE_NODE

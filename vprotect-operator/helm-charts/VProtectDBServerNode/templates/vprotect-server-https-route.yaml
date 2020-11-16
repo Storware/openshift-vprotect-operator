@@ -1,0 +1,19 @@
+{{- if .Values.server.routes.secureRoute.enabled -}}
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: {{ .Values.server.routes.secureRoute.name }}
+  labels:
+    app: vprotect-server
+spec:
+  to:
+    kind: Service
+    name: {{ .Values.server.serviceName }}
+    weight: 100
+  port:
+    targetPort: vprotect-server-https
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}

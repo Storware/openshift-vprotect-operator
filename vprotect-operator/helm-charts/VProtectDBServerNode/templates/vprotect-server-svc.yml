@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.server.serviceName }}
+  labels:
+    app: vprotect-server
+spec:
+  ports:
+  # Secure HTTP Port
+  - name: vprotect-server-https
+    port: 8181
+  # Insecure HTTP Port
+  - name: vprotect-server-http
+    port: 8080  
+  selector:
+    app: vprotect-server
+  type: {{ .Values.server.serviceType }}
+---

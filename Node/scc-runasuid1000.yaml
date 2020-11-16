@@ -1,0 +1,29 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: vprotect
+users:
+- system:serviceaccount:alkesh-storware:runasuid1000
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+defaultAddCapabilities: []
+requiredDropCapabilities: []
+allowedCapabilities: []
+allowPrivilegedContainer: false
+fsGroup: # Volumes which support ownership management are modified to be owned and writable by the GID specified in fsGroup
+  type: RunAsAny
+priority: 0
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: RunAsAny
+supplementalGroups: # Supplemental groups are regular Linux groups. When a process runs in Linux, it has a UID, a GID, and one or more supplemental groups.
+  type: RunAsAny
+volumes:
+- '*' # Types of volumes the pod can mount. * is wildcard. https://docs.openshift.org/latest/architecture/additional_concepts/authorization.html#authorization-controlling-volumes

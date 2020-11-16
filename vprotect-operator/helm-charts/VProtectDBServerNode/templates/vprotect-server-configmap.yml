@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vprotect-config
+  labels:
+    app: vprotect-server
+data:
+  payara.properties: |
+    eu.storware.vprotect.http.port=8080
+    eu.storware.vprotect.https.port=8181
+    eu.storware.vprotect.db.host={{ .Values.mariadb.serviceName }}
+    eu.storware.vprotect.db.port={{ .Values.mariadb.port }}
+    eu.storware.vprotect.db.user={{ .Values.mariadb.MYSQL_USER }}
+    eu.storware.vprotect.db.password={{ .Values.mariadb.MYSQL_PASSWORD }}
+    eu.storware.vprotect.ssl.certname=vprotect
+    payaramicro.userLogFile=/opt/vprotect/logs/appserver/server.log
+    payaramicro.logToFile=true
+    javax.net.ssl.keyStore=/opt/vprotect/vprotect-keystore.jks
+    javax.net.ssl.keyStorePassword=changeit
+---

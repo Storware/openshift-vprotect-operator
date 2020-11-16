@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vprotect-config
+  labels:
+    app: vprotect-server
+data:
+  payara.properties: |
+    eu.storware.vprotect.http.port=8080
+    eu.storware.vprotect.https.port=8181
+    eu.storware.vprotect.db.host=mariadb
+    eu.storware.vprotect.db.port=3306
+    eu.storware.vprotect.db.user=vprotect
+    eu.storware.vprotect.db.password=vprotect
+    eu.storware.vprotect.ssl.certname=vprotect
+    payaramicro.userLogFile=/opt/vprotect/logs/appserver/server.log
+    payaramicro.logToFile=true
+    javax.net.ssl.keyStore=/opt/vprotect/vprotect-keystore.jks
+    javax.net.ssl.keyStorePassword=changeit
+---

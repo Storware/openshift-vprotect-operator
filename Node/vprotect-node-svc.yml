@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vprotect-node
+  labels:
+    app: vprotect-node
+spec:
+  ports:
+  - name: vprotect-node
+    port: 15700
+  selector:
+    app: vprotect-node
+---

@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-server
+  labels:
+    app: vprotect-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vprotect-server
+  template:
+    metadata:
+      labels:
+        app: vprotect-server
+    spec:
+      terminationGracePeriodSeconds: 600
+      serviceAccountName: myserviceaccount
+      initContainers:
+      - name: init-mariadb
+        image: busybox
+        command: ['sh', '-c', 'until nc -z -v -w30 mariadb 3306; do echo "Waiting for database connection..."; sleep 5; done;']
+      containers:
+      - name: vprotect-server
+        image: image-registry.openshift-image-registry.svc:5000/storware-rhel/vprotect-server-rhel:0.1
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: vprotect-config
+          mountPath: /opt/vprotect/payara.properties
+          subPath: payara.properties
+        imagePullPolicy: Always
+        livenessProbe:
+              httpGet:
+                path: /
+                port: 8080
+              initialDelaySeconds: 500
+              periodSeconds: 30
+        readinessProbe:
+              httpGet:
+                path: /
+                port: 8080
+              initialDelaySeconds: 80
+              periodSeconds: 30
+              failureThreshold: 15
+      volumes:
+      - name: vprotect-config
+        configMap:
+          name: vprotect-config
+          items:
+          - key: payara.properties
+            path: payara.properties
+---

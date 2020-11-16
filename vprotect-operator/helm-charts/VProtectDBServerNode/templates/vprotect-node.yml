@@ -1,0 +1,154 @@
+{{- if .Values.node.provisionNode -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-node
+  labels:
+    app: vprotect-node
+spec:
+  replicas: {{ .Values.node.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-node
+  template:
+    metadata:
+      labels:
+        app: vprotect-node
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: vprotect-operator
+      securityContext:
+        fsGroup: 1000
+      {{ if .Values.useImagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretsName }}
+      {{ end }}
+      initContainers:
+      - name: init-vprotectserver
+        image: {{ .Values.initcontainerimage }}
+        command: ['sh', '-c', 'until nc -z -v -w30 {{ .Values.server.serviceName }} 8181; do echo "Waiting for vProtect Server..."; sleep 5; done;']
+      containers:
+      - name: vprotect-node
+        image: {{ .Values.node.image }}
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: {{ .Values.node.cpu }}
+            memory: {{ .Values.node.memory }}
+        ports:
+        - containerPort: {{ .Values.node.containerPort }}
+        env:
+        - name: VPROTECT_NODE_NAME
+          value: vProtectNode
+        - name: VPROTECT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: username
+        - name: VPROTECT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vprotect-node-secrets
+              key: password
+        - name: VPROTECT_SERVER_SERVICE
+          value: vprotect-server
+        command: ["sh", "-c", "/opt/vprotect/register-node.sh"]
+        args:
+          - "$VPROTECT_NODE_NAME"
+          - "$VPROTECT_USERNAME"
+          - "$VPROTECT_PASSWORD"
+        volumeMounts:
+        {{- if not ( or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable) }}
+        # EmptyDir Space If all false
+        - name: vprotect-node-staging-space-single-deduplicated-data
+          mountPath: /vprotect_data
+        {{- end }}
+        
+        {{- if not .Values.node.onlyStagingSpace.enable }}
+        {{- if .Values.node.singleDeduplicatedSpace.enable }}
+        # EmptyDir Space
+        - name: vprotect-node-staging-space-single-deduplicated-data
+          mountPath: /vprotect_data
+        {{- end }}
+        {{- end }}
+        
+        {{- if or (eq .Values.node.onlyStagingSpace.enable true) (and (eq .Values.node.singleDeduplicatedSpace.enable false) (or .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable)) }}
+        # Staging Space
+        - name: vprotect-node-staging-space-data
+          mountPath: /vprotect_data
+        {{- end }}
+        
+        {{- if not (or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable) }}
+        {{- if .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable }}
+        # Initialized Block Space
+        - name: vprotect-node-initialized-block-data
+          mountPath: {{ .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.backupMountPath | default "/vprotect_data/backupsDestination"}}
+        {{- end }}
+        {{- end }}
+        
+        {{- if not (or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable) }}
+        {{- if .Values.node.separateStagingAndBackupSpace.backupTo.file.enable }}
+        # File Space
+        - name: vprotect-node-file-data
+          mountPath: {{ .Values.node.separateStagingAndBackupSpace.backupTo.file.backupMountPath | default "/vprotect_data/backupsDestination"}}
+        {{- end }}
+        {{- end }}
+        
+        {{- if not .Values.node.onlyStagingSpace.enable }}
+        {{- if or .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable }}
+        # Raw Block Space
+        volumeDevices:
+        - name: vprotect-node-raw-block-data
+          devicePath: "/dev/sda"
+        {{- end }}
+        {{- end }}
+      
+      volumes:
+      {{- if not ( or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable) }}
+      # EmptyDir Space if all false
+      - name: vprotect-node-staging-space-single-deduplicated-data
+        emptyDir: {}
+      {{- end }}  
+      
+      {{- if not .Values.node.onlyStagingSpace.enable }}
+      {{- if .Values.node.singleDeduplicatedSpace.enable }}
+      # EmptyDir Space
+      - name: vprotect-node-staging-space-single-deduplicated-data
+        emptyDir: {}
+      {{- end }}
+      {{- end }}
+      
+      {{- if or (eq .Values.node.onlyStagingSpace.enable true) (and (eq .Values.node.singleDeduplicatedSpace.enable false) (or .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable)) }}
+      # Staging Space
+      - name: vprotect-node-staging-space-data
+        persistentVolumeClaim:
+          claimName: vprotect-node-staging-space-pvc
+      {{- end }}
+      
+      {{- if not (or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable .Values.node.separateStagingAndBackupSpace.backupTo.file.enable) }}
+      {{- if .Values.node.separateStagingAndBackupSpace.backupTo.initializedBlock.enable }}
+      # Initialized Block Space
+      - name: vprotect-node-initialized-block-data
+        persistentVolumeClaim:
+          claimName: vprotect-node-initialized-block-pvc
+      {{- end }}
+      {{- end }}
+      
+      {{- if not (or .Values.node.onlyStagingSpace.enable .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable) }}
+      {{- if .Values.node.separateStagingAndBackupSpace.backupTo.file.enable }}
+      # File Space
+      - name: vprotect-node-file-data
+        persistentVolumeClaim:
+          claimName: vprotect-node-file-pvc
+      {{- end }}
+      {{- end }}
+      
+      {{- if not .Values.node.onlyStagingSpace.enable }}
+      {{- if or .Values.node.singleDeduplicatedSpace.enable .Values.node.separateStagingAndBackupSpace.backupTo.rawBlock.enable }}
+      # Raw Block Space
+      - name: vprotect-node-raw-block-data
+        persistentVolumeClaim:
+          claimName: vprotect-node-raw-block-pvc
+      {{- end }}
+      {{- end }}
+{{- end }}

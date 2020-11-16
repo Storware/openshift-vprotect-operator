@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vprotect-server
+  labels:
+    app: vprotect-server
+spec:
+  ports:
+  - name: vprotect-server-https
+    port: 8181
+    nodePort: 31010
+  - name: vprotect-server-http
+    port: 8080
+    nodePort: 32010
+  selector:
+    app: vprotect-server
+  type: NodePort
+---

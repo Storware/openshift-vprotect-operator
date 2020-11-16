@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-server
+  labels:
+    app: vprotect-server
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-server
+  template:
+    metadata:
+      labels:
+        app: vprotect-server
+    spec:
+      terminationGracePeriodSeconds: 120
+      serviceAccountName: vprotect-operator
+      {{ if .Values.useImagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretsName }}
+      {{ end }}
+      initContainers:
+      - name: init-mariadb
+        image: {{ .Values.initcontainerimage }}
+        command: ['sh', '-c', 'until nc -z -v -w30 {{ .Values.mariadb.serviceName }} {{ .Values.mariadb.port }}; do echo "Waiting for database connection..."; sleep 5; done;']
+      containers:
+      - name: vprotect-server
+        image: {{ .Values.server.image }}
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: vprotect-config
+          mountPath: /opt/vprotect/payara.properties
+          subPath: payara.properties
+        imagePullPolicy: Always
+        livenessProbe:
+              httpGet:
+                path: /
+                port: 8080
+              initialDelaySeconds: 180
+              periodSeconds: 30
+        readinessProbe:
+              httpGet:
+                path: /
+                port: 8080
+              initialDelaySeconds: 80
+              periodSeconds: 30
+              failureThreshold: 5
+      volumes:
+      - name: vprotect-config
+        configMap:
+          name: vprotect-config
+          items:
+          - key: payara.properties
+            path: payara.properties
+---

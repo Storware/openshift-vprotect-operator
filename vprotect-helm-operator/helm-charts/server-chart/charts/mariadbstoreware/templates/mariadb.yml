@@ -1,0 +1,79 @@
+---
+{{- if .Values.provisionMariaDB -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprotect-mariadb
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vprotect-mariadb
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: vprotect-mariadb
+  template:
+    metadata:
+      labels:
+        app: vprotect-mariadb
+    spec:
+      #serviceAccountName: {{ .Values.serviceAccountName }}
+      containers:
+      - name: mariadb
+        image: "{{ .Values.DBImage }}"
+        imagePullPolicy: Always
+        env:
+        - name: MYSQL_PASSWORD
+          value: {{ .Values.MYSQL_PASSWORD }}
+        - name: MYSQL_USER
+          value: {{ .Values.MYSQL_USER }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.MYSQL_DATABASE }}
+        - name: MYSQL_DEFAULTS_FILE
+          value: {{ .Values.MYSQL_DEFAULTS_FILE }}
+        resources:
+          requests:
+            cpu: {{ .Values.cpu }}
+            memory: {{ .Values.memory }}
+        ports:
+        - containerPort: {{ .Values.port }}
+          name: {{ .Values.portName }}
+        volumeMounts:
+        - name: mysql-data
+          mountPath: "{{ .Values.dataMountPath }}"
+        - name: {{ .Values.configmapName }}
+          mountPath: "{{ .Values.configmapMountPath }}"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - "-c"
+            - exec mysqladmin status -uroot
+          initialDelaySeconds: 120
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - "-c"
+            - exec mysqladmin status -uroot
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.pvcName }}
+      - name: {{ .Values.configmapName }}
+        configMap:
+          name: {{ .Values.configmapName }}
+          items:
+          - key: my.cnf
+            path: my_custom.cnf
+{{- end }}
+---
