@@ -2,5 +2,5 @@
 # http://www.vprotect.io/
 [vprotect]
 name = vProtect
-baseurl = http://repo.storware.eu/vprotect/3.9.2/el8/
+baseurl = http://repo.storware.eu/vprotect/current/el8/
 gpgcheck=0
