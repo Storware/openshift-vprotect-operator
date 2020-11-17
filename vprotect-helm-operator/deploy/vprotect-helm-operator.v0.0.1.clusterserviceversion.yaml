@@ -337,7 +337,7 @@ spec:
   - virtualization
   links:
   - name: "Source Code"
-    url: "https://github.com/storware/sample-code/tree/master/operators/vprotect-helm-operator"
+    url: "https://github.com/Storware/openshift-vprotect-operator/tree/master/vprotect-helm-operator"
   maintainers:
     - email: vprotect@storware.eu
       name: 'Storware vProtect'
