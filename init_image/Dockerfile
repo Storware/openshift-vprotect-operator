@@ -12,6 +12,8 @@ LABEL name="vProtect Server" \
 
 COPY licenses /licenses
 
+RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical
+
 ENV USER_ID 1000
 RUN microdnf install nc shadow-utils
 ENV USER_NAME vprotect
