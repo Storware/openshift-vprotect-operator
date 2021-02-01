@@ -31,6 +31,8 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s
 RUN chmod +x ./kubectl
 RUN mv ./kubectl /usr/local/bin/kubectl
 
+RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical
+
 RUN yum install openssl -y \
                 sudo \
                 nc \
