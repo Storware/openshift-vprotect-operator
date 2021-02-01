@@ -12,6 +12,8 @@ LABEL name="vProtect Init Image" \
 
 COPY licenses /licenses
 
+RUN microdnf update --security --sec-severity=Important --sec-severity=Critical
+
 ENV USER_ID 1000
 RUN microdnf install nc shadow-utils
 ENV USER_NAME vprotect
