@@ -20,6 +20,8 @@ ENV VPROTECT_DIR /opt/vprotect
 RUN mkdir $VPROTECT_DIR && chown $USER_NAME $VPROTECT_DIR
 WORKDIR $VPROTECT_DIR
 
+RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical
+
 #Install dependencies
 RUN yum update -y \
     && yum -y install java-1.8.0-openjdk python2 procps sudo \
