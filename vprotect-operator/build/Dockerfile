@@ -1,4 +1,4 @@
-FROM quay.io/operator-framework/helm-operator:v0.16.0
+FROM quay.io/operator-framework/helm-operator:latest
 
 # Operator Container Image
 LABEL name="vProtect Operator" \
