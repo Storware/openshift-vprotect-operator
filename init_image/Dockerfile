@@ -1,8 +1,8 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 MAINTAINER vprotect@storware.eu
 
-LABEL name="vProtect Server" \
+LABEL name="vProtect Init Image" \
                         vendor="Storware" \
                         version="0.0.1" \
                         release="0.0.1" \

@@ -20,9 +20,11 @@ ENV VPROTECT_DIR /opt/vprotect
 RUN mkdir $VPROTECT_DIR && chown $USER_NAME $VPROTECT_DIR
 WORKDIR $VPROTECT_DIR
 
+RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical
+
 #Install dependencies
 RUN yum update -y \
-    && yum -y install java-1.8.0-openjdk python2 procps sudo \
+    && yum -y install java-11-openjdk python2 procps sudo \
 	&& echo "JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")" | sudo tee -a /etc/profile \
     && source /etc/profile
 
