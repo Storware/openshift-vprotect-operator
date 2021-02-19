@@ -4,8 +4,8 @@ MAINTAINER vprotect@storware.eu
 
 LABEL name="vProtect Init Image" \
                         vendor="Storware" \
-                        version="0.0.1" \
-                        release="0.0.1" \
+                        version="0.0.2" \
+                        release="4.1.0" \
                         summary="Image for init container" \
                         description="Storware vProtect is an enterprise backup solution for virtual environments. It facilitates the implementation of virtual machine backup running on every major virtualization, container or cloud platform. It supports multiple backup providers:  file system-based, object storage or enterprise grade backup providers."
 
